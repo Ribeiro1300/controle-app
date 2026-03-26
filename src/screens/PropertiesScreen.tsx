@@ -95,7 +95,7 @@ export function PropertiesScreen({ navigation }: PropertiesScreenProps) {
             </View>
             <View style={styles.tenantInfo}>
               <Text style={styles.rentLabel}>Inquilino</Text>
-              <Text style={styles.tenantId}>{isRented ? `ID: ${item.tenantId}` : "Nenhum"}</Text>
+              <Text style={styles.tenantId}>{isRented ? `${item.tenant.name}` : "Nenhum"}</Text>
             </View>
           </View>
         </View>
@@ -121,7 +121,16 @@ export function PropertiesScreen({ navigation }: PropertiesScreenProps) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Imóveis</Text>
+      <View style={styles.headerContainer}>
+        <Text style={styles.title}>Imóveis</Text>
+        <TouchableOpacity
+          style={styles.registerButton}
+          onPress={() => navigation.navigate("PropertyForm", {})}
+        >
+          <Text style={styles.registerButtonText}>+ Cadastrar</Text>
+        </TouchableOpacity>
+      </View>
+
       {properties.length > 0 ? (
         <FlatList
           data={properties}
@@ -146,11 +155,27 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 16,
   },
+  headerContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
   title: {
     fontSize: 28,
     fontWeight: "700",
     color: Colors.primary,
-    marginBottom: 16,
+  },
+  registerButton: {
+    backgroundColor: Colors.secondary,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  registerButtonText: {
+    color: Colors.background,
+    fontWeight: "700",
+    fontSize: 13,
   },
   listContent: {
     paddingBottom: 20,

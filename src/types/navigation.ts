@@ -11,4 +11,5 @@ export type RootTabParamList = {
 export type PropertiesStackParamList = {
   PropertiesList: undefined;
   PropertyDetails: { propertyId: number };
+  PropertyForm: { propertyId?: number };
 };

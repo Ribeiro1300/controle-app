@@ -6,6 +6,7 @@ import { StyleSheet, Text } from "react-native";
 import { PaymentsScreen } from "./src/screens/PaymentsScreen";
 import { PropertiesScreen } from "./src/screens/PropertiesScreen";
 import { PropertyDetailsScreen } from "./src/screens/PropertyDetailsScreen";
+import { PropertyFormScreen } from "./src/screens/PropertyFormScreen";
 import { DebtsScreen } from "./src/screens/DebtsScreen";
 import { Colors } from "./src/theme/colors";
 import type { RootTabParamList, PropertiesStackParamList } from "./src/types/navigation";
@@ -56,6 +57,13 @@ function PropertiesStackNavigator() {
         component={PropertyDetailsScreen}
         options={{
           title: "Detalhes do Imóvel",
+        }}
+      />
+      <PropertiesStack.Screen
+        name="PropertyForm"
+        component={PropertyFormScreen}
+        options={{
+          title: "Cadastro de Imóvel",
         }}
       />
     </PropertiesStack.Navigator>

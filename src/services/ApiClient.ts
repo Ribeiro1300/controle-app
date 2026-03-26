@@ -42,6 +42,11 @@ export class ApiClient {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeout);
 
+    console.log("🚀 passa aqui por favor meu jesus ~ ApiClient ~ request ~ url:", {
+      url,
+      body: config.body,
+      method: config.method,
+    });
     try {
       const response = await fetch(url, {
         method: config.method,

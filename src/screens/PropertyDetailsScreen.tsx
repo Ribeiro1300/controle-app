@@ -3,7 +3,8 @@
  * Shows full details of a property
  */
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
+import { useFocusEffect } from "@react-navigation/native";
 import {
   View,
   Text,
@@ -11,6 +12,7 @@ import {
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Colors } from "../theme/colors";
@@ -27,7 +29,15 @@ export function PropertyDetailsScreen({ route, navigation }: PropertyDetailsScre
   const { propertyId } = route.params;
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchPropertyDetails();
+    }, [propertyId]),
+  );
 
   useEffect(() => {
     fetchPropertyDetails();
@@ -49,6 +59,23 @@ export function PropertyDetailsScreen({ route, navigation }: PropertyDetailsScre
       console.error("Failed to fetch property details:", err);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function handleDelete() {
+    try {
+      setDeleting(true);
+      // Soft delete - apenas marca como inativo
+      await apiClient.put(`/properties/${propertyId}`, {
+        is_active: false,
+      });
+      setShowDeleteConfirmation(false);
+      navigation.goBack();
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : "Erro ao excluir imóvel";
+      console.error("Failed to delete property:", err);
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -82,97 +109,164 @@ export function PropertyDetailsScreen({ route, navigation }: PropertyDetailsScre
   });
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.propertyName}>{property.name}</Text>
-        <View style={[styles.statusBadge, isRented ? styles.statusRented : styles.statusEmpty]}>
-          <Text style={styles.statusText}>{isRented ? "Alugado" : "Vago"}</Text>
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Localização</Text>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Endereço:</Text>
-          <Text style={styles.value}>{property.address}</Text>
-        </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Número:</Text>
-          <Text style={styles.value}>{property.number}</Text>
-        </View>
-        {property.complement && (
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Complemento:</Text>
-            <Text style={styles.value}>{property.complement}</Text>
+    <View style={styles.container}>
+      <ScrollView style={styles.scrollView}>
+        <View style={styles.header}>
+          <Text style={styles.propertyName}>{property.name}</Text>
+          <View style={[styles.statusBadge, isRented ? styles.statusRented : styles.statusEmpty]}>
+            <Text style={styles.statusText}>{isRented ? "Alugado" : "Vago"}</Text>
           </View>
-        )}
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Cidade:</Text>
-          <Text style={styles.value}>
-            {property.city}, {property.state}
-          </Text>
         </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>CEP:</Text>
-          <Text style={styles.value}>{property.zipCode}</Text>
-        </View>
-      </View>
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Valores</Text>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Valor Estimado:</Text>
-          <Text style={styles.value}>{estimatedValue}</Text>
-        </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Valor do Aluguel:</Text>
-          <Text style={[styles.value, styles.rentValueHighlight]}>{rentValue}</Text>
-        </View>
-        {property.dueDay && (
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Dia do Vencimento:</Text>
-            <Text style={styles.value}>{property.dueDay}</Text>
-          </View>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Inquilino</Text>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Status:</Text>
-          <Text style={styles.value}>
-            {isRented ? `ID do Inquilino: ${property.tenantId}` : "Sem inquilino"}
-          </Text>
-        </View>
-      </View>
-
-      {property.observation && (
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Observações</Text>
-          <Text style={styles.observationText}>{property.observation}</Text>
+          <Text style={styles.sectionTitle}>Localização</Text>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Endereço:</Text>
+            <Text style={styles.value}>{property.address}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Número:</Text>
+            <Text style={styles.value}>{property.number}</Text>
+          </View>
+          {property.complement && (
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Complemento:</Text>
+              <Text style={styles.value}>{property.complement}</Text>
+            </View>
+          )}
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Cidade:</Text>
+            <Text style={styles.value}>
+              {property.city}, {property.state}
+            </Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>CEP:</Text>
+            <Text style={styles.value}>{property.zipCode}</Text>
+          </View>
         </View>
-      )}
 
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Informações Adicionais</Text>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Status:</Text>
-          <Text style={styles.value}>{property.isActive ? "Ativo" : "Inativo"}</Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Valores</Text>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Valor Estimado:</Text>
+            <Text style={styles.value}>{estimatedValue}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Valor do Aluguel:</Text>
+            <Text style={[styles.value, styles.rentValueHighlight]}>{rentValue}</Text>
+          </View>
+          {property.dueDay && (
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Dia do Vencimento:</Text>
+              <Text style={styles.value}>{property.dueDay}</Text>
+            </View>
+          )}
         </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Criado em:</Text>
-          <Text style={styles.value}>
-            {new Date(property.createdAt).toLocaleDateString("pt-BR")}
-          </Text>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Inquilino</Text>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Nome:</Text>
+            <Text style={styles.value}>
+              {isRented ? `${property.tenant.name}` : "Sem inquilino"}
+            </Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Telefone:</Text>
+            <Text style={styles.value}>{isRented ? property.tenant.phone : "N/A"}</Text>
+          </View>
+          {isRented && property.tenant.observation && (
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Observações do Inquilino:</Text>
+              <Text style={styles.value}>{property.tenant.observation}</Text>
+            </View>
+          )}
         </View>
-        <View style={styles.infoItem}>
-          <Text style={styles.label}>Atualizado em:</Text>
-          <Text style={styles.value}>
-            {new Date(property.updatedAt).toLocaleDateString("pt-BR")}
-          </Text>
+
+        {property.observation && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Observações</Text>
+            <Text style={styles.observationText}>{property.observation}</Text>
+          </View>
+        )}
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Informações Adicionais</Text>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Status:</Text>
+            <Text style={styles.value}>{property.isActive ? "Ativo" : "Inativo"}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Criado em:</Text>
+            <Text style={styles.value}>
+              {new Date(property.createdAt).toLocaleDateString("pt-BR")}
+            </Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.label}>Atualizado em:</Text>
+            <Text style={styles.value}>
+              {new Date(property.updatedAt).toLocaleDateString("pt-BR")}
+            </Text>
+          </View>
         </View>
-      </View>
-    </ScrollView>
+
+        <View style={styles.actionButtonsContainer}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => navigation.navigate("PropertyForm", { propertyId })}
+          >
+            <Text style={styles.editButtonText}>✏️ Editar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
+            onPress={() => setShowDeleteConfirmation(true)}
+            disabled={deleting}
+          >
+            <Text style={styles.deleteButtonText}>{deleting ? "Excluindo..." : "🗑️ Excluir"}</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+
+      <Modal
+        visible={showDeleteConfirmation}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowDeleteConfirmation(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Excluir Imóvel</Text>
+            <Text style={styles.modalMessage}>
+              Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.
+            </Text>
+
+            <View style={styles.modalButtonsContainer}>
+              <TouchableOpacity
+                style={styles.modalCancelButton}
+                onPress={() => setShowDeleteConfirmation(false)}
+                disabled={deleting}
+              >
+                <Text style={styles.modalCancelButtonText}>Cancelar</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalConfirmButton, deleting && styles.modalConfirmButtonDisabled]}
+                onPress={handleDelete}
+                disabled={deleting}
+              >
+                {deleting ? (
+                  <ActivityIndicator color={Colors.background} size="small" />
+                ) : (
+                  <Text style={styles.modalConfirmButtonText}>Excluir</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
@@ -180,6 +274,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  scrollView: {
+    flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
   },
@@ -292,5 +389,106 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.error,
     fontWeight: "600",
+  },
+  actionButtonsContainer: {
+    flexDirection: "row",
+    gap: 12,
+    marginTop: 24,
+    marginBottom: 32,
+  },
+  editButton: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  editButtonText: {
+    color: Colors.background,
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  deleteButton: {
+    flex: 1,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.error,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  deleteButtonDisabled: {
+    backgroundColor: Colors.textLight,
+    opacity: 0.6,
+  },
+  deleteButtonText: {
+    color: Colors.background,
+    fontWeight: "700",
+    fontSize: 15,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContent: {
+    backgroundColor: Colors.background,
+    borderRadius: 12,
+    padding: 24,
+    marginHorizontal: 20,
+    alignItems: "center",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: Colors.primary,
+    marginBottom: 12,
+  },
+  modalMessage: {
+    fontSize: 14,
+    color: Colors.primary,
+    textAlign: "center",
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  modalButtonsContainer: {
+    flexDirection: "row",
+    gap: 12,
+    width: "100%",
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.border,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCancelButtonText: {
+    color: Colors.primary,
+    fontWeight: "600",
+    fontSize: 14,
+  },
+  modalConfirmButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    backgroundColor: Colors.error,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalConfirmButtonDisabled: {
+    backgroundColor: Colors.textLight,
+    opacity: 0.6,
+  },
+  modalConfirmButtonText: {
+    color: Colors.background,
+    fontWeight: "600",
+    fontSize: 14,
   },
 });
