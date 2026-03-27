@@ -4,15 +4,24 @@ import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { StyleSheet, Text } from "react-native";
 import { PaymentsScreen } from "./src/screens/PaymentsScreen";
+import { PaymentFormScreen } from "./src/screens/PaymentFormScreen";
 import { PropertiesScreen } from "./src/screens/PropertiesScreen";
 import { PropertyDetailsScreen } from "./src/screens/PropertyDetailsScreen";
 import { PropertyFormScreen } from "./src/screens/PropertyFormScreen";
 import { DebtsScreen } from "./src/screens/DebtsScreen";
+import { ExpenseFormScreen } from "./src/screens/ExpenseFormScreen";
 import { Colors } from "./src/theme/colors";
-import type { RootTabParamList, PropertiesStackParamList } from "./src/types/navigation";
+import type {
+  RootTabParamList,
+  PropertiesStackParamList,
+  PaymentsStackParamList,
+  DebtsStackParamList,
+} from "./src/types/navigation";
 
 const Tab = createBottomTabNavigator<RootTabParamList>();
 const PropertiesStack = createNativeStackNavigator<PropertiesStackParamList>();
+const PaymentsStack = createNativeStackNavigator<PaymentsStackParamList>();
+const DebtsStack = createNativeStackNavigator<DebtsStackParamList>();
 
 // Icon components for tabs
 function PaymentIcon({ color }: { color: string }) {
@@ -34,8 +43,6 @@ function PropertiesStackNavigator() {
       screenOptions={{
         headerStyle: {
           backgroundColor: Colors.primary,
-          borderBottomWidth: 2,
-          borderBottomColor: Colors.secondary,
         },
         headerTintColor: Colors.background,
         headerTitleStyle: {
@@ -67,6 +74,74 @@ function PropertiesStackNavigator() {
         }}
       />
     </PropertiesStack.Navigator>
+  );
+}
+
+// Stack Navigator for Payments
+function PaymentsStackNavigator() {
+  return (
+    <PaymentsStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: Colors.primary,
+        },
+        headerTintColor: Colors.background,
+        headerTitleStyle: {
+          fontWeight: "700",
+          fontSize: 18,
+        },
+      }}
+    >
+      <PaymentsStack.Screen
+        name="PaymentsList"
+        component={PaymentsScreen}
+        options={{
+          title: "Pagamentos",
+          headerShown: false,
+        }}
+      />
+      <PaymentsStack.Screen
+        name="PaymentForm"
+        component={PaymentFormScreen}
+        options={{
+          title: "Cadastro de Pagamento",
+        }}
+      />
+    </PaymentsStack.Navigator>
+  );
+}
+
+// Stack Navigator for Debts/Expenses
+function DebtsStackNavigator() {
+  return (
+    <DebtsStack.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: Colors.primary,
+        },
+        headerTintColor: Colors.background,
+        headerTitleStyle: {
+          fontWeight: "700",
+          fontSize: 18,
+        },
+      }}
+    >
+      <DebtsStack.Screen
+        name="DebtsList"
+        component={DebtsScreen}
+        options={{
+          title: "Gastos",
+          headerShown: false,
+        }}
+      />
+      <DebtsStack.Screen
+        name="ExpenseForm"
+        component={ExpenseFormScreen}
+        options={{
+          title: "Cadastro de Gasto",
+        }}
+      />
+    </DebtsStack.Navigator>
   );
 }
 
@@ -105,10 +180,11 @@ export default function App() {
         >
           <Tab.Screen
             name="Payments"
-            component={PaymentsScreen}
+            component={PaymentsStackNavigator}
             options={{
               title: "Pagamentos",
               tabBarIcon: PaymentIcon,
+              headerShown: false,
             }}
           />
           <Tab.Screen
@@ -122,15 +198,16 @@ export default function App() {
           />
           <Tab.Screen
             name="Debts"
-            component={DebtsScreen}
+            component={DebtsStackNavigator}
             options={{
-              title: "Débitos",
+              title: "Gastos",
               tabBarIcon: DebtIcon,
+              headerShown: false,
             }}
           />
         </Tab.Navigator>
       </NavigationContainer>
-      <StatusBar barStyle="light-content" backgroundColor={Colors.primary} />
+      <StatusBar backgroundColor={Colors.primary} />
     </>
   );
 }

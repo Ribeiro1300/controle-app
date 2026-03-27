@@ -13,3 +13,21 @@ export type PropertiesStackParamList = {
   PropertyDetails: { propertyId: number };
   PropertyForm: { propertyId?: number };
 };
+
+export type PaymentsStackParamList = {
+  PaymentsList: undefined;
+  PaymentForm: {
+    paymentData?: {
+      propertyId: number;
+      propertyName: string;
+      monthReference: string;
+      yearReference: number;
+      amount: number;
+    };
+  };
+};
+
+export type DebtsStackParamList = {
+  DebtsList: undefined;
+  ExpenseForm: { expenseId?: number };
+};
