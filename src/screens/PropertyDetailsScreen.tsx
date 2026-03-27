@@ -13,11 +13,14 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Modal,
+  FlatList,
 } from "react-native";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { GetPropertiesResponse, Property } from "../types/property";
+import type { Payment, PaymentsResponse } from "../types/payment";
+import type { Expense, ExpensesResponse } from "../types/expense";
 import type { PropertiesStackParamList } from "../types/navigation";
 
 type PropertyDetailsScreenProps = NativeStackScreenProps<
@@ -28,6 +31,8 @@ type PropertyDetailsScreenProps = NativeStackScreenProps<
 export function PropertyDetailsScreen({ route, navigation }: PropertyDetailsScreenProps) {
   const { propertyId } = route.params;
   const [property, setProperty] = useState<Property | null>(null);
+  const [payments, setPayments] = useState<Payment[]>([]);
+  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,10 +53,40 @@ export function PropertyDetailsScreen({ route, navigation }: PropertyDetailsScre
       setLoading(true);
       setError(null);
 
-      const response = await apiClient.get<GetPropertiesResponse>(`/properties/${propertyId}`);
+      const propertyResponse = await apiClient.get<GetPropertiesResponse>(
+        `/properties/${propertyId}`,
+      );
+      if (propertyResponse.result) {
+        setProperty(propertyResponse.result);
+      }
 
-      if (response.result) {
-        setProperty(response.result);
+      // Fetch payments for this property
+      try {
+        const paymentsResponse = await apiClient.get<PaymentsResponse>("/payments");
+        if (paymentsResponse.result) {
+          const currentYear = new Date().getFullYear();
+          const filteredPayments = paymentsResponse.result.filter(
+            (p) => p.propertyId === propertyId && p.yearReference === currentYear,
+          );
+          setPayments(filteredPayments);
+        }
+      } catch (err) {
+        console.error("Failed to fetch payments:", err);
+      }
+
+      // Fetch expenses for this property
+      try {
+        const expensesResponse = await apiClient.get<ExpensesResponse>("/debts");
+        if (expensesResponse.result) {
+          const currentYear = new Date().getFullYear();
+          const filteredExpenses = expensesResponse.result.filter(
+            (e) =>
+              e.propertyId === propertyId && new Date(e.debtDate).getFullYear() === currentYear,
+          );
+          setExpenses(filteredExpenses);
+        }
+      } catch (err) {
+        console.error("Failed to fetch expenses:", err);
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro ao carregar detalhes";
@@ -192,23 +227,98 @@ export function PropertyDetailsScreen({ route, navigation }: PropertyDetailsScre
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Informações Adicionais</Text>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Status:</Text>
-            <Text style={styles.value}>{property.isActive ? "Ativo" : "Inativo"}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Criado em:</Text>
-            <Text style={styles.value}>
-              {new Date(property.createdAt).toLocaleDateString("pt-BR")}
-            </Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Atualizado em:</Text>
-            <Text style={styles.value}>
-              {new Date(property.updatedAt).toLocaleDateString("pt-BR")}
-            </Text>
-          </View>
+          <Text style={styles.sectionTitle}>Pagamentos</Text>
+          {payments.length > 0 && (
+            <View style={[styles.totalContainer, styles.paymentsTotalContainer]}>
+              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={[styles.totalAmount, styles.paymentsTotalAmount]}>
+                {payments
+                  .reduce((sum, p) => sum + p.amount, 0)
+                  .toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+              </Text>
+            </View>
+          )}
+          {payments.length > 0 ? (
+            <View>
+              {payments.map((payment, index) => (
+                <View
+                  key={`${payment.propertyName}-${payment.monthReference}-${index}`}
+                  style={styles.listItem}
+                >
+                  <View style={styles.listItemContent}>
+                    <Text style={styles.listItemMonth}>
+                      {payment.monthReference} {payment.yearReference}
+                    </Text>
+                    <View style={styles.listItemFooter}>
+                      <Text style={styles.listItemAmount}>
+                        {payment.amount.toLocaleString("pt-BR", {
+                          style: "currency",
+                          currency: "BRL",
+                        })}
+                      </Text>
+                      <View style={[styles.statusBadgeSmall, styles[`status${payment.status}`]]}>
+                        <Text style={styles.statusBadgeSmallText}>
+                          {payment.status === "paid"
+                            ? "Pago"
+                            : payment.status === "pending"
+                              ? "Pendente"
+                              : "Atrasado"}
+                        </Text>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>Nenhum pagamento registrado</Text>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Gastos</Text>
+          {expenses.length > 0 && (
+            <View style={styles.totalContainer}>
+              <Text style={styles.totalLabel}>Total:</Text>
+              <Text style={styles.totalAmount}>
+                {expenses
+                  .reduce((sum, e) => sum + parseFloat(e.amount), 0)
+                  .toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  })}
+              </Text>
+            </View>
+          )}
+          {expenses.length > 0 ? (
+            <View>
+              {expenses.map((expense, index) => {
+                const expenseDate = new Date(expense.debtDate).toLocaleDateString("pt-BR");
+                const expenseAmount = parseFloat(expense.amount).toLocaleString("pt-BR", {
+                  style: "currency",
+                  currency: "BRL",
+                });
+                return (
+                  <View key={`${expense.id}-${index}`} style={styles.listItem}>
+                    <View style={styles.listItemContent}>
+                      <View style={styles.listItemHeader}>
+                        <Text style={styles.listItemDate}>{expenseDate}</Text>
+                      </View>
+                      <Text style={styles.listItemAmount}>{expenseAmount}</Text>
+                      {expense.observation && (
+                        <Text style={styles.listItemObservation}>{expense.observation}</Text>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+            </View>
+          ) : (
+            <Text style={styles.emptyText}>Nenhum gasto registrado</Text>
+          )}
         </View>
 
         <View style={styles.actionButtonsContainer}>
@@ -360,6 +470,97 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: Colors.secondary,
   },
+  emptyText: {
+    fontSize: 14,
+    color: Colors.textLight,
+    fontStyle: "italic",
+    paddingVertical: 8,
+  },
+  totalContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.background,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: Colors.secondary,
+    marginBottom: 12,
+  },
+  totalLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.primary,
+  },
+  totalAmount: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.secondary,
+  },
+  listItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    backgroundColor: Colors.background,
+    borderRadius: 6,
+    borderLeftWidth: 3,
+    borderLeftColor: Colors.secondary,
+    marginBottom: 8,
+  },
+  listItemContent: {
+    gap: 4,
+  },
+  listItemHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  listItemMonth: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.primary,
+  },
+  listItemDate: {
+    fontSize: 12,
+    color: Colors.textLight,
+    fontWeight: "500",
+  },
+  listItemFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginTop: 4,
+  },
+  listItemAmount: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.secondary,
+  },
+  listItemObservation: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 4,
+    fontStyle: "italic",
+  },
+  statusBadgeSmall: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  statusBadgeSmallText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: Colors.background,
+  },
+  statuspaid: {
+    backgroundColor: Colors.success,
+  },
+  statuspending: {
+    backgroundColor: Colors.secondary,
+  },
+  statusoverdue: {
+    backgroundColor: Colors.error,
+  },
   backButton: {
     marginTop: 20,
     paddingHorizontal: 20,
@@ -490,5 +691,11 @@ const styles = StyleSheet.create({
     color: Colors.background,
     fontWeight: "600",
     fontSize: 14,
+  },
+  paymentsTotalContainer: {
+    borderColor: Colors.success,
+  },
+  paymentsTotalAmount: {
+    color: Colors.success,
   },
 });
