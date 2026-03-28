@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { Expense, ExpensesResponse } from "../types/expense";
@@ -162,7 +163,7 @@ export function DebtsScreen({ navigation }: DebtsScreenProps) {
   }
 
   return (
-    <>
+    <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Gastos</Text>
@@ -229,11 +230,15 @@ export function DebtsScreen({ navigation }: DebtsScreenProps) {
           </View>
         </View>
       </Modal>
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,

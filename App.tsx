@@ -2,7 +2,8 @@ import { StatusBar } from "expo-status-bar";
 import { NavigationContainer } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { StyleSheet, Text } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
+import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { PaymentsScreen } from "./src/screens/PaymentsScreen";
 import { PaymentFormScreen } from "./src/screens/PaymentFormScreen";
 import { PropertiesScreen } from "./src/screens/PropertiesScreen";
@@ -145,70 +146,80 @@ function DebtsStackNavigator() {
   );
 }
 
+function AppNavigator() {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        headerStyle: {
+          backgroundColor: Colors.primary,
+          borderBottomWidth: 2,
+          borderBottomColor: Colors.secondary,
+        },
+        headerTintColor: Colors.background,
+        headerTitleStyle: {
+          fontWeight: "700",
+          fontSize: 18,
+        },
+        tabBarStyle: {
+          backgroundColor: Colors.primary,
+          borderTopWidth: 2,
+          borderTopColor: Colors.secondary,
+          paddingBottom: insets.bottom > 0 ? insets.bottom : 8,
+          paddingTop: 8,
+          height: 60 + (insets.bottom > 0 ? insets.bottom : 0),
+        },
+        tabBarActiveTintColor: Colors.secondary,
+        tabBarInactiveTintColor: Colors.textLight,
+        tabBarLabelStyle: {
+          fontSize: 12,
+          fontWeight: "600",
+          marginTop: 4,
+        },
+      }}
+    >
+      <Tab.Screen
+        name="Payments"
+        component={PaymentsStackNavigator}
+        options={{
+          title: "Pagamentos",
+          tabBarIcon: PaymentIcon,
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="Properties"
+        component={PropertiesStackNavigator}
+        options={{
+          title: "Imóveis",
+          tabBarIcon: PropertyIcon,
+          headerShown: false,
+        }}
+      />
+      <Tab.Screen
+        name="Debts"
+        component={DebtsStackNavigator}
+        options={{
+          title: "Gastos",
+          tabBarIcon: DebtIcon,
+          headerShown: false,
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
+
 export default function App() {
   return (
-    <>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            headerStyle: {
-              backgroundColor: Colors.primary,
-              borderBottomWidth: 2,
-              borderBottomColor: Colors.secondary,
-            },
-            headerTintColor: Colors.background,
-            headerTitleStyle: {
-              fontWeight: "700",
-              fontSize: 18,
-            },
-            tabBarStyle: {
-              backgroundColor: Colors.primary,
-              borderTopWidth: 2,
-              borderTopColor: Colors.secondary,
-              paddingBottom: 8,
-              paddingTop: 8,
-              height: 60,
-            },
-            tabBarActiveTintColor: Colors.secondary,
-            tabBarInactiveTintColor: Colors.textLight,
-            tabBarLabelStyle: {
-              fontSize: 12,
-              fontWeight: "600",
-              marginTop: 4,
-            },
-          }}
-        >
-          <Tab.Screen
-            name="Payments"
-            component={PaymentsStackNavigator}
-            options={{
-              title: "Pagamentos",
-              tabBarIcon: PaymentIcon,
-              headerShown: false,
-            }}
-          />
-          <Tab.Screen
-            name="Properties"
-            component={PropertiesStackNavigator}
-            options={{
-              title: "Imóveis",
-              tabBarIcon: PropertyIcon,
-              headerShown: false,
-            }}
-          />
-          <Tab.Screen
-            name="Debts"
-            component={DebtsStackNavigator}
-            options={{
-              title: "Gastos",
-              tabBarIcon: DebtIcon,
-              headerShown: false,
-            }}
-          />
-        </Tab.Navigator>
-      </NavigationContainer>
-      <StatusBar backgroundColor={Colors.primary} />
-    </>
+    <SafeAreaProvider>
+      <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+        <NavigationContainer>
+          <AppNavigator />
+        </NavigationContainer>
+        <StatusBar backgroundColor={Colors.primary} />
+      </SafeAreaView>
+    </SafeAreaProvider>
   );
 }
 

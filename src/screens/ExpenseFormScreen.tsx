@@ -16,6 +16,7 @@ import {
   Modal,
   FlatList,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { Property, PropertiesResponse } from "../types/property";
@@ -151,145 +152,152 @@ export function ExpenseFormScreen({ navigation, route }: ExpenseFormScreenProps)
   const selectedProperty = properties.find((p) => p.id === formData.propertyId);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.sectionTitle}>Informações do Gasto</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>Informações do Gasto</Text>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Data *</Text>
-        <TextInput
-          style={[styles.input, errors.debtDate && styles.inputError]}
-          placeholder="DD-MM-AAAA"
-          value={formData.debtDate}
-          onChangeText={(value) => handleInputChange("debtDate", value)}
-          placeholderTextColor={Colors.textLight}
-        />
-        {errors.debtDate && <Text style={styles.errorText}>{errors.debtDate}</Text>}
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Imóvel *</Text>
-        <TouchableOpacity
-          style={[styles.selectButton, errors.propertyId && styles.inputError]}
-          onPress={() => setShowPropertyDropdown(true)}
-        >
-          <Text style={[styles.selectButtonText, !selectedProperty && styles.placeholderText]}>
-            {selectedProperty ? selectedProperty.name : "Selecione um imóvel"}
-          </Text>
-        </TouchableOpacity>
-        {errors.propertyId && <Text style={styles.errorText}>{errors.propertyId}</Text>}
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Valor (R$) *</Text>
-        <TextInput
-          style={[styles.input, errors.amount && styles.inputError]}
-          placeholder="0,00"
-          value={formData.amount}
-          onChangeText={(value) => handleInputChange("amount", value)}
-          keyboardType="decimal-pad"
-          placeholderTextColor={Colors.textLight}
-        />
-        {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
-      </View>
-
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Observação</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Adicione notas sobre o gasto..."
-          value={formData.observation}
-          onChangeText={(value) => handleInputChange("observation", value)}
-          multiline
-          numberOfLines={4}
-          placeholderTextColor={Colors.textLight}
-          textAlignVertical="top"
-        />
-      </View>
-
-      {errors.submit && <Text style={styles.submitError}>{errors.submit}</Text>}
-
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => navigation.goBack()}
-          disabled={loading}
-        >
-          <Text style={styles.cancelButtonText}>Cancelar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={Colors.background} />
-          ) : (
-            <Text style={styles.submitButtonText}>Cadastrar</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <Modal
-        visible={showPropertyDropdown}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowPropertyDropdown(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selecione um Imóvel</Text>
-              <TouchableOpacity onPress={() => setShowPropertyDropdown(false)}>
-                <Text style={styles.modalCloseButton}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            {loadingProperties ? (
-              <View style={styles.centerContent}>
-                <ActivityIndicator size="large" color={Colors.secondary} />
-              </View>
-            ) : (
-              <FlatList
-                data={properties}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    style={[
-                      styles.propertyOption,
-                      formData.propertyId === item.id && styles.propertyOptionSelected,
-                    ]}
-                    onPress={() => {
-                      setFormData((prev) => ({ ...prev, propertyId: item.id }));
-                      setShowPropertyDropdown(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        styles.propertyOptionText,
-                        formData.propertyId === item.id && styles.propertyOptionTextSelected,
-                      ]}
-                    >
-                      {item.name}
-                    </Text>
-                  </TouchableOpacity>
-                )}
-                keyExtractor={(item) => item.id.toString()}
-                scrollEnabled={true}
-              />
-            )}
-          </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Data *</Text>
+          <TextInput
+            style={[styles.input, errors.debtDate && styles.inputError]}
+            placeholder="DD-MM-AAAA"
+            value={formData.debtDate}
+            onChangeText={(value) => handleInputChange("debtDate", value)}
+            placeholderTextColor={Colors.textLight}
+          />
+          {errors.debtDate && <Text style={styles.errorText}>{errors.debtDate}</Text>}
         </View>
-      </Modal>
-    </ScrollView>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Imóvel *</Text>
+          <TouchableOpacity
+            style={[styles.selectButton, errors.propertyId && styles.inputError]}
+            onPress={() => setShowPropertyDropdown(true)}
+          >
+            <Text style={[styles.selectButtonText, !selectedProperty && styles.placeholderText]}>
+              {selectedProperty ? selectedProperty.name : "Selecione um imóvel"}
+            </Text>
+          </TouchableOpacity>
+          {errors.propertyId && <Text style={styles.errorText}>{errors.propertyId}</Text>}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Valor (R$) *</Text>
+          <TextInput
+            style={[styles.input, errors.amount && styles.inputError]}
+            placeholder="0,00"
+            value={formData.amount}
+            onChangeText={(value) => handleInputChange("amount", value)}
+            keyboardType="decimal-pad"
+            placeholderTextColor={Colors.textLight}
+          />
+          {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Observação</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Adicione notas sobre o gasto..."
+            value={formData.observation}
+            onChangeText={(value) => handleInputChange("observation", value)}
+            multiline
+            numberOfLines={4}
+            placeholderTextColor={Colors.textLight}
+            textAlignVertical="top"
+          />
+        </View>
+
+        {errors.submit && <Text style={styles.submitError}>{errors.submit}</Text>}
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => navigation.goBack()}
+            disabled={loading}
+          >
+            <Text style={styles.cancelButtonText}>Cancelar</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.background} />
+            ) : (
+              <Text style={styles.submitButtonText}>Cadastrar</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <Modal
+          visible={showPropertyDropdown}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowPropertyDropdown(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Selecione um Imóvel</Text>
+                <TouchableOpacity onPress={() => setShowPropertyDropdown(false)}>
+                  <Text style={styles.modalCloseButton}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {loadingProperties ? (
+                <View style={styles.centerContent}>
+                  <ActivityIndicator size="large" color={Colors.secondary} />
+                </View>
+              ) : (
+                <FlatList
+                  data={properties}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.propertyOption,
+                        formData.propertyId === item.id && styles.propertyOptionSelected,
+                      ]}
+                      onPress={() => {
+                        setFormData((prev) => ({ ...prev, propertyId: item.id }));
+                        setShowPropertyDropdown(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.propertyOptionText,
+                          formData.propertyId === item.id && styles.propertyOptionTextSelected,
+                        ]}
+                      >
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  keyExtractor={(item) => item.id.toString()}
+                  scrollEnabled={true}
+                />
+              )}
+            </View>
+          </View>
+        </Modal>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    paddingBottom: 120,
   },
   sectionTitle: {
     fontSize: 16,

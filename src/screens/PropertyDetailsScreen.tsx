@@ -15,6 +15,7 @@ import {
   Modal,
   FlatList,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import type { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
@@ -144,243 +145,251 @@ export function PropertyDetailsScreen({ route, navigation }: PropertyDetailsScre
   });
 
   return (
-    <View style={styles.container}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.header}>
-          <Text style={styles.propertyName}>{property.name}</Text>
-          <View style={[styles.statusBadge, isRented ? styles.statusRented : styles.statusEmpty]}>
-            <Text style={styles.statusText}>{isRented ? "Alugado" : "Vago"}</Text>
-          </View>
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Localização</Text>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Endereço:</Text>
-            <Text style={styles.value}>{property.address}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Número:</Text>
-            <Text style={styles.value}>{property.number}</Text>
-          </View>
-          {property.complement && (
-            <View style={styles.infoItem}>
-              <Text style={styles.label}>Complemento:</Text>
-              <Text style={styles.value}>{property.complement}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={true}>
+          <View style={styles.header}>
+            <Text style={styles.propertyName}>{property.name}</Text>
+            <View style={[styles.statusBadge, isRented ? styles.statusRented : styles.statusEmpty]}>
+              <Text style={styles.statusText}>{isRented ? "Alugado" : "Vago"}</Text>
             </View>
-          )}
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Cidade:</Text>
-            <Text style={styles.value}>
-              {property.city}, {property.state}
-            </Text>
           </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>CEP:</Text>
-            <Text style={styles.value}>{property.zipCode}</Text>
-          </View>
-        </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Valores</Text>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Valor Estimado:</Text>
-            <Text style={styles.value}>{estimatedValue}</Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Valor do Aluguel:</Text>
-            <Text style={[styles.value, styles.rentValueHighlight]}>{rentValue}</Text>
-          </View>
-          {property.dueDay && (
-            <View style={styles.infoItem}>
-              <Text style={styles.label}>Dia do Vencimento:</Text>
-              <Text style={styles.value}>{property.dueDay}</Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Inquilino</Text>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Nome:</Text>
-            <Text style={styles.value}>
-              {isRented ? `${property.tenant.name}` : "Sem inquilino"}
-            </Text>
-          </View>
-          <View style={styles.infoItem}>
-            <Text style={styles.label}>Telefone:</Text>
-            <Text style={styles.value}>{isRented ? property.tenant.phone : "N/A"}</Text>
-          </View>
-          {isRented && property.tenant.observation && (
-            <View style={styles.infoItem}>
-              <Text style={styles.label}>Observações do Inquilino:</Text>
-              <Text style={styles.value}>{property.tenant.observation}</Text>
-            </View>
-          )}
-        </View>
-
-        {property.observation && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Observações</Text>
-            <Text style={styles.observationText}>{property.observation}</Text>
+            <Text style={styles.sectionTitle}>Localização</Text>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Endereço:</Text>
+              <Text style={styles.value}>{property.address}</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Número:</Text>
+              <Text style={styles.value}>{property.number}</Text>
+            </View>
+            {property.complement && (
+              <View style={styles.infoItem}>
+                <Text style={styles.label}>Complemento:</Text>
+                <Text style={styles.value}>{property.complement}</Text>
+              </View>
+            )}
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Cidade:</Text>
+              <Text style={styles.value}>
+                {property.city}, {property.state}
+              </Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>CEP:</Text>
+              <Text style={styles.value}>{property.zipCode}</Text>
+            </View>
           </View>
-        )}
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Pagamentos</Text>
-          {payments.length > 0 && (
-            <View style={[styles.totalContainer, styles.paymentsTotalContainer]}>
-              <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={[styles.totalAmount, styles.paymentsTotalAmount]}>
-                {payments
-                  .reduce((sum, p) => sum + p.amount, 0)
-                  .toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Valores</Text>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Valor Estimado:</Text>
+              <Text style={styles.value}>{estimatedValue}</Text>
+            </View>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Valor do Aluguel:</Text>
+              <Text style={[styles.value, styles.rentValueHighlight]}>{rentValue}</Text>
+            </View>
+            {property.dueDay && (
+              <View style={styles.infoItem}>
+                <Text style={styles.label}>Dia do Vencimento:</Text>
+                <Text style={styles.value}>{property.dueDay}</Text>
+              </View>
+            )}
+          </View>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Inquilino</Text>
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Nome:</Text>
+              <Text style={styles.value}>
+                {isRented ? `${property.tenant.name}` : "Sem inquilino"}
               </Text>
             </View>
-          )}
-          {payments.length > 0 ? (
-            <View>
-              {payments.map((payment, index) => (
-                <View
-                  key={`${payment.propertyName}-${payment.monthReference}-${index}`}
-                  style={styles.listItem}
-                >
-                  <View style={styles.listItemContent}>
-                    <Text style={styles.listItemMonth}>
-                      {payment.monthReference} {payment.yearReference}
-                    </Text>
-                    <View style={styles.listItemFooter}>
-                      <Text style={styles.listItemAmount}>
-                        {payment.amount.toLocaleString("pt-BR", {
-                          style: "currency",
-                          currency: "BRL",
-                        })}
-                      </Text>
-                      <View style={[styles.statusBadgeSmall, styles[`status${payment.status}`]]}>
-                        <Text style={styles.statusBadgeSmallText}>
-                          {payment.status === "paid"
-                            ? "Pago"
-                            : payment.status === "pending"
-                              ? "Pendente"
-                              : "Atrasado"}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-              ))}
+            <View style={styles.infoItem}>
+              <Text style={styles.label}>Telefone:</Text>
+              <Text style={styles.value}>{isRented ? property.tenant.phone : "N/A"}</Text>
             </View>
-          ) : (
-            <Text style={styles.emptyText}>Nenhum pagamento registrado</Text>
-          )}
-        </View>
+            {isRented && property.tenant.observation && (
+              <View style={styles.infoItem}>
+                <Text style={styles.label}>Observações do Inquilino:</Text>
+                <Text style={styles.value}>{property.tenant.observation}</Text>
+              </View>
+            )}
+          </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Gastos</Text>
-          {expenses.length > 0 && (
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>Total:</Text>
-              <Text style={styles.totalAmount}>
-                {expenses
-                  .reduce((sum, e) => sum + parseFloat(e.amount), 0)
-                  .toLocaleString("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  })}
-              </Text>
+          {property.observation && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Observações</Text>
+              <Text style={styles.observationText}>{property.observation}</Text>
             </View>
           )}
-          {expenses.length > 0 ? (
-            <View>
-              {expenses.map((expense, index) => {
-                const expenseDate = new Date(expense.debtDate).toLocaleDateString("pt-BR");
-                const expenseAmount = parseFloat(expense.amount).toLocaleString("pt-BR", {
-                  style: "currency",
-                  currency: "BRL",
-                });
-                return (
-                  <View key={`${expense.id}-${index}`} style={styles.listItem}>
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Pagamentos</Text>
+            {payments.length > 0 && (
+              <View style={[styles.totalContainer, styles.paymentsTotalContainer]}>
+                <Text style={styles.totalLabel}>Total:</Text>
+                <Text style={[styles.totalAmount, styles.paymentsTotalAmount]}>
+                  {payments
+                    .reduce((sum, p) => sum + p.amount, 0)
+                    .toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                </Text>
+              </View>
+            )}
+            {payments.length > 0 ? (
+              <View>
+                {payments.map((payment, index) => (
+                  <View
+                    key={`${payment.propertyName}-${payment.monthReference}-${index}`}
+                    style={styles.listItem}
+                  >
                     <View style={styles.listItemContent}>
-                      <View style={styles.listItemHeader}>
-                        <Text style={styles.listItemDate}>{expenseDate}</Text>
+                      <Text style={styles.listItemMonth}>
+                        {payment.monthReference} {payment.yearReference}
+                      </Text>
+                      <View style={styles.listItemFooter}>
+                        <Text style={styles.listItemAmount}>
+                          {payment.amount.toLocaleString("pt-BR", {
+                            style: "currency",
+                            currency: "BRL",
+                          })}
+                        </Text>
+                        <View style={[styles.statusBadgeSmall, styles[`status${payment.status}`]]}>
+                          <Text style={styles.statusBadgeSmallText}>
+                            {payment.status === "paid"
+                              ? "Pago"
+                              : payment.status === "pending"
+                                ? "Pendente"
+                                : "Atrasado"}
+                          </Text>
+                        </View>
                       </View>
-                      <Text style={styles.listItemAmount}>{expenseAmount}</Text>
-                      {expense.observation && (
-                        <Text style={styles.listItemObservation}>{expense.observation}</Text>
-                      )}
                     </View>
                   </View>
-                );
-              })}
-            </View>
-          ) : (
-            <Text style={styles.emptyText}>Nenhum gasto registrado</Text>
-          )}
-        </View>
+                ))}
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>Nenhum pagamento registrado</Text>
+            )}
+          </View>
 
-        <View style={styles.actionButtonsContainer}>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => navigation.navigate("PropertyForm", { propertyId })}
-          >
-            <Text style={styles.editButtonText}>✏️ Editar</Text>
-          </TouchableOpacity>
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Gastos</Text>
+            {expenses.length > 0 && (
+              <View style={styles.totalContainer}>
+                <Text style={styles.totalLabel}>Total:</Text>
+                <Text style={styles.totalAmount}>
+                  {expenses
+                    .reduce((sum, e) => sum + parseFloat(e.amount), 0)
+                    .toLocaleString("pt-BR", {
+                      style: "currency",
+                      currency: "BRL",
+                    })}
+                </Text>
+              </View>
+            )}
+            {expenses.length > 0 ? (
+              <View>
+                {expenses.map((expense, index) => {
+                  const expenseDate = new Date(expense.debtDate).toLocaleDateString("pt-BR");
+                  const expenseAmount = parseFloat(expense.amount).toLocaleString("pt-BR", {
+                    style: "currency",
+                    currency: "BRL",
+                  });
+                  return (
+                    <View key={`${expense.id}-${index}`} style={styles.listItem}>
+                      <View style={styles.listItemContent}>
+                        <View style={styles.listItemHeader}>
+                          <Text style={styles.listItemDate}>{expenseDate}</Text>
+                        </View>
+                        <Text style={styles.listItemAmount}>{expenseAmount}</Text>
+                        {expense.observation && (
+                          <Text style={styles.listItemObservation}>{expense.observation}</Text>
+                        )}
+                      </View>
+                    </View>
+                  );
+                })}
+              </View>
+            ) : (
+              <Text style={styles.emptyText}>Nenhum gasto registrado</Text>
+            )}
+          </View>
 
-          <TouchableOpacity
-            style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
-            onPress={() => setShowDeleteConfirmation(true)}
-            disabled={deleting}
-          >
-            <Text style={styles.deleteButtonText}>{deleting ? "Excluindo..." : "🗑️ Excluir"}</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity
+              style={styles.editButton}
+              onPress={() => navigation.navigate("PropertyForm", { propertyId })}
+            >
+              <Text style={styles.editButtonText}>✏️ Editar</Text>
+            </TouchableOpacity>
 
-      <Modal
-        visible={showDeleteConfirmation}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDeleteConfirmation(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Excluir Imóvel</Text>
-            <Text style={styles.modalMessage}>
-              Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.
-            </Text>
+            <TouchableOpacity
+              style={[styles.deleteButton, deleting && styles.deleteButtonDisabled]}
+              onPress={() => setShowDeleteConfirmation(true)}
+              disabled={deleting}
+            >
+              <Text style={styles.deleteButtonText}>
+                {deleting ? "Excluindo..." : "🗑️ Excluir"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
 
-            <View style={styles.modalButtonsContainer}>
-              <TouchableOpacity
-                style={styles.modalCancelButton}
-                onPress={() => setShowDeleteConfirmation(false)}
-                disabled={deleting}
-              >
-                <Text style={styles.modalCancelButtonText}>Cancelar</Text>
-              </TouchableOpacity>
+        <Modal
+          visible={showDeleteConfirmation}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDeleteConfirmation(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>Excluir Imóvel</Text>
+              <Text style={styles.modalMessage}>
+                Tem certeza que deseja excluir este imóvel? Esta ação não pode ser desfeita.
+              </Text>
 
-              <TouchableOpacity
-                style={[styles.modalConfirmButton, deleting && styles.modalConfirmButtonDisabled]}
-                onPress={handleDelete}
-                disabled={deleting}
-              >
-                {deleting ? (
-                  <ActivityIndicator color={Colors.background} size="small" />
-                ) : (
-                  <Text style={styles.modalConfirmButtonText}>Excluir</Text>
-                )}
-              </TouchableOpacity>
+              <View style={styles.modalButtonsContainer}>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={() => setShowDeleteConfirmation(false)}
+                  disabled={deleting}
+                >
+                  <Text style={styles.modalCancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.modalConfirmButton, deleting && styles.modalConfirmButtonDisabled]}
+                  onPress={handleDelete}
+                  disabled={deleting}
+                >
+                  {deleting ? (
+                    <ActivityIndicator color={Colors.background} size="small" />
+                  ) : (
+                    <Text style={styles.modalConfirmButtonText}>Excluir</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
@@ -389,6 +398,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    paddingBottom: 120,
   },
   center: {
     flex: 1,

@@ -14,6 +14,7 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { Property, PropertiesResponse } from "../types/property";
@@ -120,35 +121,41 @@ export function PropertiesScreen({ navigation }: PropertiesScreenProps) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <Text style={styles.title}>Imóveis</Text>
-        <TouchableOpacity
-          style={styles.registerButton}
-          onPress={() => navigation.navigate("PropertyForm", {})}
-        >
-          <Text style={styles.registerButtonText}>+ Cadastrar</Text>
-        </TouchableOpacity>
-      </View>
-
-      {properties.length > 0 ? (
-        <FlatList
-          data={properties}
-          renderItem={renderPropertyCard}
-          keyExtractor={(item) => item.id.toString()}
-          scrollEnabled
-          contentContainerStyle={styles.listContent}
-        />
-      ) : (
-        <View style={styles.center}>
-          <Text style={styles.emptyText}>Nenhum imóvel cadastrado</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <Text style={styles.title}>Imóveis</Text>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={() => navigation.navigate("PropertyForm", {})}
+          >
+            <Text style={styles.registerButtonText}>+ Cadastrar</Text>
+          </TouchableOpacity>
         </View>
-      )}
-    </View>
+
+        {properties.length > 0 ? (
+          <FlatList
+            data={properties}
+            renderItem={renderPropertyCard}
+            keyExtractor={(item) => item.id.toString()}
+            scrollEnabled
+            contentContainerStyle={styles.listContent}
+          />
+        ) : (
+          <View style={styles.center}>
+            <Text style={styles.emptyText}>Nenhum imóvel cadastrado</Text>
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,

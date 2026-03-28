@@ -15,6 +15,7 @@ import {
   TouchableOpacity,
   Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { Payment, PaymentsResponse } from "../types/payment";
@@ -226,103 +227,109 @@ export function PaymentsScreen({ navigation }: PaymentsScreenProps) {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.headerContainer}>
-        <View>
-          <Text style={styles.title}>Pagamentos</Text>
-          <Text style={styles.subtitle}>{payments.length} pagamento(s) registrado(s)</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.container}>
+        <View style={styles.headerContainer}>
+          <View>
+            <Text style={styles.title}>Pagamentos</Text>
+            <Text style={styles.subtitle}>{payments.length} pagamento(s) registrado(s)</Text>
+          </View>
+          <TouchableOpacity
+            style={styles.registerButton}
+            onPress={() => navigation.navigate("PaymentForm", {})}
+          >
+            <Text style={styles.registerButtonText}>+ Cadastrar</Text>
+          </TouchableOpacity>
         </View>
-        <TouchableOpacity
-          style={styles.registerButton}
-          onPress={() => navigation.navigate("PaymentForm", {})}
-        >
-          <Text style={styles.registerButtonText}>+ Cadastrar</Text>
-        </TouchableOpacity>
-      </View>
 
-      <View style={styles.filterButtonsContainer}>
-        <TouchableOpacity
-          style={[styles.filterButton, filterStatus === "overdue" && styles.filterButtonActive]}
-          onPress={() => fetchPayments("overdue")}
-        >
-          <Text
-            style={[
-              styles.filterButtonText,
-              filterStatus === "overdue" && styles.filterButtonTextActive,
-            ]}
+        <View style={styles.filterButtonsContainer}>
+          <TouchableOpacity
+            style={[styles.filterButton, filterStatus === "overdue" && styles.filterButtonActive]}
+            onPress={() => fetchPayments("overdue")}
           >
-            Atrasados
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.filterButton, filterStatus === "all" && styles.filterButtonActive]}
-          onPress={() => fetchPayments("all")}
-        >
-          <Text
-            style={[
-              styles.filterButtonText,
-              filterStatus === "all" && styles.filterButtonTextActive,
-            ]}
-          >
-            Todos
-          </Text>
-        </TouchableOpacity>
-      </View>
-
-      <FlatList
-        data={payments}
-        renderItem={renderPaymentCard}
-        keyExtractor={(item, index) =>
-          `${item.propertyName}-${item.monthReference}-${item.yearReference}-${index}`
-        }
-        scrollEnabled={true}
-        contentContainerStyle={styles.listContainer}
-        ItemSeparatorComponent={() => <View style={styles.separator} />}
-      />
-
-      <Modal
-        visible={showDeleteModal}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowDeleteModal(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.deleteModalContent}>
-            <Text style={styles.deleteModalTitle}>Excluir Pagamento?</Text>
-            <Text style={styles.deleteModalMessage}>
-              Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
+            <Text
+              style={[
+                styles.filterButtonText,
+                filterStatus === "overdue" && styles.filterButtonTextActive,
+              ]}
+            >
+              Atrasados
             </Text>
-            <View style={styles.deleteModalButtons}>
-              <TouchableOpacity
-                style={styles.deleteModalCancelButton}
-                onPress={() => setShowDeleteModal(false)}
-                disabled={deletingLoading}
-              >
-                <Text style={styles.deleteModalCancelButtonText}>Cancelar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.deleteModalDeleteButton,
-                  deletingLoading && styles.deleteModalDeleteButtonDisabled,
-                ]}
-                onPress={handleDeletePayment}
-                disabled={deletingLoading}
-              >
-                {deletingLoading ? (
-                  <ActivityIndicator color={Colors.background} />
-                ) : (
-                  <Text style={styles.deleteModalDeleteButtonText}>Excluir</Text>
-                )}
-              </TouchableOpacity>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.filterButton, filterStatus === "all" && styles.filterButtonActive]}
+            onPress={() => fetchPayments("all")}
+          >
+            <Text
+              style={[
+                styles.filterButtonText,
+                filterStatus === "all" && styles.filterButtonTextActive,
+              ]}
+            >
+              Todos
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        <FlatList
+          data={payments}
+          renderItem={renderPaymentCard}
+          keyExtractor={(item, index) =>
+            `${item.propertyName}-${item.monthReference}-${item.yearReference}-${index}`
+          }
+          scrollEnabled={true}
+          contentContainerStyle={styles.listContainer}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
+
+        <Modal
+          visible={showDeleteModal}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setShowDeleteModal(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.deleteModalContent}>
+              <Text style={styles.deleteModalTitle}>Excluir Pagamento?</Text>
+              <Text style={styles.deleteModalMessage}>
+                Tem certeza que deseja excluir este pagamento? Esta ação não pode ser desfeita.
+              </Text>
+              <View style={styles.deleteModalButtons}>
+                <TouchableOpacity
+                  style={styles.deleteModalCancelButton}
+                  onPress={() => setShowDeleteModal(false)}
+                  disabled={deletingLoading}
+                >
+                  <Text style={styles.deleteModalCancelButtonText}>Cancelar</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.deleteModalDeleteButton,
+                    deletingLoading && styles.deleteModalDeleteButtonDisabled,
+                  ]}
+                  onPress={handleDeletePayment}
+                  disabled={deletingLoading}
+                >
+                  {deletingLoading ? (
+                    <ActivityIndicator color={Colors.background} />
+                  ) : (
+                    <Text style={styles.deleteModalDeleteButtonText}>Excluir</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </View>
+        </Modal>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,

@@ -15,6 +15,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { GetPropertiesResponse, Property } from "../types/property";
@@ -284,7 +285,7 @@ export function PropertyFormScreen({ navigation, route }: PropertyFormScreenProp
   };
 
   return (
-    <>
+    <SafeAreaView style={styles.safeArea}>
       {initialLoading ? (
         <View style={[styles.container, styles.centerContent]}>
           <ActivityIndicator size="large" color={Colors.secondary} />
@@ -510,16 +511,21 @@ export function PropertyFormScreen({ navigation, route }: PropertyFormScreenProp
           </View>
         </ScrollView>
       )}
-    </>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    paddingBottom: 120,
   },
   centerContent: {
     justifyContent: "center",

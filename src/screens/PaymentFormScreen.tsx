@@ -16,6 +16,7 @@ import {
   Modal,
   FlatList,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { Property, PropertiesResponse } from "../types/property";
@@ -203,227 +204,234 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
   const selectedProperty = properties.find((p) => p.id === formData.propertyId);
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <Text style={styles.sectionTitle}>Informações do Pagamento</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <Text style={styles.sectionTitle}>Informações do Pagamento</Text>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Data do Pagamento *</Text>
-        <TextInput
-          style={[styles.input, errors.paymentDate && styles.inputError]}
-          placeholder={convertDateToBrazilian(new Date().toISOString().split("T")[0])}
-          value={convertDateToBrazilian(formData.paymentDate)}
-          onChangeText={(value) => {
-            const isoDate = convertDateToISO(value);
-            handleInputChange("paymentDate", isoDate);
-          }}
-          placeholderTextColor={Colors.textLight}
-        />
-        {errors.paymentDate && <Text style={styles.errorText}>{errors.paymentDate}</Text>}
-      </View>
-
-      <View style={styles.row}>
-        <View style={[styles.formGroup, styles.flex]}>
-          <Text style={styles.label}>Ano *</Text>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Data do Pagamento *</Text>
           <TextInput
-            style={[styles.input, errors.yearReference && styles.inputError]}
-            placeholder="2026"
-            value={formData.yearReference.toString()}
-            onChangeText={(value) => handleInputChange("yearReference", parseInt(value) || 0)}
-            keyboardType="number-pad"
+            style={[styles.input, errors.paymentDate && styles.inputError]}
+            placeholder={convertDateToBrazilian(new Date().toISOString().split("T")[0])}
+            value={convertDateToBrazilian(formData.paymentDate)}
+            onChangeText={(value) => {
+              const isoDate = convertDateToISO(value);
+              handleInputChange("paymentDate", isoDate);
+            }}
             placeholderTextColor={Colors.textLight}
           />
-          {errors.yearReference && <Text style={styles.errorText}>{errors.yearReference}</Text>}
+          {errors.paymentDate && <Text style={styles.errorText}>{errors.paymentDate}</Text>}
         </View>
 
-        <View style={[styles.formGroup, styles.flex]}>
-          <Text style={styles.label}>Mês *</Text>
+        <View style={styles.row}>
+          <View style={[styles.formGroup, styles.flex]}>
+            <Text style={styles.label}>Ano *</Text>
+            <TextInput
+              style={[styles.input, errors.yearReference && styles.inputError]}
+              placeholder="2026"
+              value={formData.yearReference.toString()}
+              onChangeText={(value) => handleInputChange("yearReference", parseInt(value) || 0)}
+              keyboardType="number-pad"
+              placeholderTextColor={Colors.textLight}
+            />
+            {errors.yearReference && <Text style={styles.errorText}>{errors.yearReference}</Text>}
+          </View>
+
+          <View style={[styles.formGroup, styles.flex]}>
+            <Text style={styles.label}>Mês *</Text>
+            <TouchableOpacity
+              style={[styles.selectButton, errors.monthReference && styles.inputError]}
+              onPress={() => setShowMonthDropdown(true)}
+            >
+              <Text style={styles.selectButtonText}>{formData.monthReference}</Text>
+            </TouchableOpacity>
+            {errors.monthReference && <Text style={styles.errorText}>{errors.monthReference}</Text>}
+          </View>
+        </View>
+
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Imóvel *</Text>
           <TouchableOpacity
-            style={[styles.selectButton, errors.monthReference && styles.inputError]}
-            onPress={() => setShowMonthDropdown(true)}
+            style={[styles.selectButton, errors.propertyId && styles.inputError]}
+            onPress={() => setShowPropertyDropdown(true)}
           >
-            <Text style={styles.selectButtonText}>{formData.monthReference}</Text>
+            <Text style={[styles.selectButtonText, !selectedProperty && styles.placeholderText]}>
+              {selectedProperty ? selectedProperty.name : "Selecione um imóvel"}
+            </Text>
           </TouchableOpacity>
-          {errors.monthReference && <Text style={styles.errorText}>{errors.monthReference}</Text>}
+          {errors.propertyId && <Text style={styles.errorText}>{errors.propertyId}</Text>}
         </View>
-      </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Imóvel *</Text>
-        <TouchableOpacity
-          style={[styles.selectButton, errors.propertyId && styles.inputError]}
-          onPress={() => setShowPropertyDropdown(true)}
-        >
-          <Text style={[styles.selectButtonText, !selectedProperty && styles.placeholderText]}>
-            {selectedProperty ? selectedProperty.name : "Selecione um imóvel"}
-          </Text>
-        </TouchableOpacity>
-        {errors.propertyId && <Text style={styles.errorText}>{errors.propertyId}</Text>}
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Valor (R$) *</Text>
+          <TextInput
+            style={[styles.input, errors.amount && styles.inputError]}
+            placeholder="0,00"
+            value={formData.amount}
+            onChangeText={(value) => handleInputChange("amount", value)}
+            keyboardType="decimal-pad"
+            placeholderTextColor={Colors.textLight}
+          />
+          {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Valor (R$) *</Text>
-        <TextInput
-          style={[styles.input, errors.amount && styles.inputError]}
-          placeholder="0,00"
-          value={formData.amount}
-          onChangeText={(value) => handleInputChange("amount", value)}
-          keyboardType="decimal-pad"
-          placeholderTextColor={Colors.textLight}
-        />
-        {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
-      </View>
+        <View style={styles.formGroup}>
+          <Text style={styles.label}>Observações</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Adicione observações (opcional)"
+            value={formData.observation}
+            onChangeText={(value) => handleInputChange("observation", value)}
+            placeholderTextColor={Colors.textLight}
+            multiline
+            numberOfLines={4}
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.label}>Observações</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Adicione observações (opcional)"
-          value={formData.observation}
-          onChangeText={(value) => handleInputChange("observation", value)}
-          placeholderTextColor={Colors.textLight}
-          multiline
-          numberOfLines={4}
-        />
-      </View>
+        {errors.submit && <Text style={styles.submitError}>{errors.submit}</Text>}
 
-      {errors.submit && <Text style={styles.submitError}>{errors.submit}</Text>}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity
+            style={styles.cancelButton}
+            onPress={() => navigation.goBack()}
+            disabled={loading}
+          >
+            <Text style={styles.cancelButtonText}>Cancelar</Text>
+          </TouchableOpacity>
 
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.cancelButton}
-          onPress={() => navigation.goBack()}
-          disabled={loading}
-        >
-          <Text style={styles.cancelButtonText}>Cancelar</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color={Colors.background} />
-          ) : (
-            <Text style={styles.submitButtonText}>Cadastrar</Text>
-          )}
-        </TouchableOpacity>
-      </View>
-
-      <Modal
-        visible={showPropertyDropdown}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowPropertyDropdown(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selecione um Imóvel</Text>
-              <TouchableOpacity onPress={() => setShowPropertyDropdown(false)}>
-                <Text style={styles.modalCloseButton}>✕</Text>
-              </TouchableOpacity>
-            </View>
-
-            {loadingProperties ? (
-              <View style={styles.centerContent}>
-                <ActivityIndicator size="large" color={Colors.secondary} />
-              </View>
+          <TouchableOpacity
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color={Colors.background} />
             ) : (
+              <Text style={styles.submitButtonText}>Cadastrar</Text>
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <Modal
+          visible={showPropertyDropdown}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowPropertyDropdown(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Selecione um Imóvel</Text>
+                <TouchableOpacity onPress={() => setShowPropertyDropdown(false)}>
+                  <Text style={styles.modalCloseButton}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
+              {loadingProperties ? (
+                <View style={styles.centerContent}>
+                  <ActivityIndicator size="large" color={Colors.secondary} />
+                </View>
+              ) : (
+                <FlatList
+                  data={properties}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.propertyOption,
+                        formData.propertyId === item.id && styles.propertyOptionSelected,
+                      ]}
+                      onPress={() => {
+                        const rentAmount = parseFloat(item.rentValue);
+                        const formattedAmount = rentAmount.toLocaleString("pt-BR", {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2,
+                        });
+                        setFormData((prev) => ({
+                          ...prev,
+                          propertyId: item.id,
+                          amount: formattedAmount.replace(",", "."),
+                        }));
+                        setShowPropertyDropdown(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.propertyOptionText,
+                          formData.propertyId === item.id && styles.propertyOptionTextSelected,
+                        ]}
+                      >
+                        {item.name}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                  keyExtractor={(item) => item.id.toString()}
+                  scrollEnabled={true}
+                />
+              )}
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={showMonthDropdown}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setShowMonthDropdown(false)}
+        >
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>Selecione um Mês</Text>
+                <TouchableOpacity onPress={() => setShowMonthDropdown(false)}>
+                  <Text style={styles.modalCloseButton}>✕</Text>
+                </TouchableOpacity>
+              </View>
+
               <FlatList
-                data={properties}
+                data={MONTHS}
                 renderItem={({ item }) => (
                   <TouchableOpacity
                     style={[
-                      styles.propertyOption,
-                      formData.propertyId === item.id && styles.propertyOptionSelected,
+                      styles.monthOption,
+                      formData.monthReference === item && styles.monthOptionSelected,
                     ]}
                     onPress={() => {
-                      const rentAmount = parseFloat(item.rentValue);
-                      const formattedAmount = rentAmount.toLocaleString("pt-BR", {
-                        minimumFractionDigits: 2,
-                        maximumFractionDigits: 2,
-                      });
-                      setFormData((prev) => ({
-                        ...prev,
-                        propertyId: item.id,
-                        amount: formattedAmount.replace(",", "."),
-                      }));
-                      setShowPropertyDropdown(false);
+                      setFormData((prev) => ({ ...prev, monthReference: item }));
+                      setShowMonthDropdown(false);
                     }}
                   >
                     <Text
                       style={[
-                        styles.propertyOptionText,
-                        formData.propertyId === item.id && styles.propertyOptionTextSelected,
+                        styles.monthOptionText,
+                        formData.monthReference === item && styles.monthOptionTextSelected,
                       ]}
                     >
-                      {item.name}
+                      {item}
                     </Text>
                   </TouchableOpacity>
                 )}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => item}
                 scrollEnabled={true}
               />
-            )}
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={showMonthDropdown}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setShowMonthDropdown(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Selecione um Mês</Text>
-              <TouchableOpacity onPress={() => setShowMonthDropdown(false)}>
-                <Text style={styles.modalCloseButton}>✕</Text>
-              </TouchableOpacity>
             </View>
-
-            <FlatList
-              data={MONTHS}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.monthOption,
-                    formData.monthReference === item && styles.monthOptionSelected,
-                  ]}
-                  onPress={() => {
-                    setFormData((prev) => ({ ...prev, monthReference: item }));
-                    setShowMonthDropdown(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.monthOptionText,
-                      formData.monthReference === item && styles.monthOptionTextSelected,
-                    ]}
-                  >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              )}
-              keyExtractor={(item) => item}
-              scrollEnabled={true}
-            />
           </View>
-        </View>
-      </Modal>
-    </ScrollView>
+        </Modal>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: Colors.background,
+  },
   container: {
     flex: 1,
     backgroundColor: Colors.background,
     paddingHorizontal: 16,
     paddingVertical: 16,
+    paddingBottom: 120,
   },
   sectionTitle: {
     fontSize: 16,
