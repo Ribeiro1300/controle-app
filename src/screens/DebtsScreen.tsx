@@ -177,7 +177,7 @@ export function DebtsScreen({ navigation }: DebtsScreenProps) {
             data={expenses}
             renderItem={renderExpenseCard}
             keyExtractor={(item) => item.id.toString()}
-            scrollEnabled={false}
+            scrollEnabled={true}
             contentContainerStyle={styles.listContainer}
             ItemSeparatorComponent={() => <View style={styles.separator} />}
           />

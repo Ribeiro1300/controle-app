@@ -410,9 +410,9 @@ const styles = StyleSheet.create({
     color: Colors.background,
   },
   monthYear: {
-    fontSize: 13,
-    color: Colors.textLight,
-    fontWeight: "500",
+    fontSize: 17,
+    color: Colors.secondary,
+    fontWeight: "700",
   },
   cardFooter: {
     flexDirection: "row",
@@ -423,7 +423,7 @@ const styles = StyleSheet.create({
   amount: {
     fontSize: 16,
     fontWeight: "700",
-    color: Colors.secondary,
+    color: Colors.background,
   },
   statusBadge: {
     paddingHorizontal: 12,
