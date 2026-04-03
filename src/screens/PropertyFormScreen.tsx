@@ -9,13 +9,13 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
   Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { GetPropertiesResponse, Property } from "../types/property";
@@ -292,7 +292,16 @@ export function PropertyFormScreen({ navigation, route }: PropertyFormScreenProp
           <Text style={styles.loadingText}>Carregando imóvel...</Text>
         </View>
       ) : (
-        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <KeyboardAwareScrollView
+          style={styles.container}
+          contentContainerStyle={styles.containerContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          extraScrollHeight={30}
+          extraHeight={140}
+          keyboardOpeningTime={0}
+        >
           <Text style={styles.sectionTitle}>Informações Básicas</Text>
 
           <View style={styles.formGroup}>
@@ -509,7 +518,7 @@ export function PropertyFormScreen({ navigation, route }: PropertyFormScreenProp
               )}
             </TouchableOpacity>
           </View>
-        </ScrollView>
+        </KeyboardAwareScrollView>
       )}
     </SafeAreaView>
   );
@@ -523,6 +532,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  containerContent: {
     paddingHorizontal: 16,
     paddingVertical: 16,
     paddingBottom: 120,

@@ -9,7 +9,6 @@ import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
@@ -17,6 +16,7 @@ import {
   FlatList,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { Colors } from "../theme/colors";
 import apiClient from "../services/ApiClient";
 import type { Property, PropertiesResponse } from "../types/property";
@@ -205,7 +205,16 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <KeyboardAwareScrollView
+        style={styles.container}
+        contentContainerStyle={styles.containerContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+        enableOnAndroid
+        extraScrollHeight={30}
+        extraHeight={140}
+        keyboardOpeningTime={0}
+      >
         <Text style={styles.sectionTitle}>Informações do Pagamento</Text>
 
         <View style={styles.formGroup}>
@@ -416,7 +425,7 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
             </View>
           </View>
         </Modal>
-      </ScrollView>
+      </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
@@ -429,6 +438,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.background,
+  },
+  containerContent: {
     paddingHorizontal: 16,
     paddingVertical: 16,
     paddingBottom: 120,
