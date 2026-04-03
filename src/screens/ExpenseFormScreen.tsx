@@ -38,6 +38,18 @@ const INITIAL_FORM_STATE: FormData = {
   observation: "",
 };
 
+// Convert date format from YYYY-MM-DD to DD-MM-AAAA
+function convertDateToBrazilian(dateStr: string): string {
+  const [year, month, day] = dateStr.split("-");
+  return `${day}-${month}-${year}`;
+}
+
+// Convert date format from DD-MM-AAAA to YYYY-MM-DD
+function convertDateToISO(dateStr: string): string {
+  const [day, month, year] = dateStr.split("-");
+  return `${year}-${month}-${day}`;
+}
+
 // Format money input to allow only digits and up to 2 decimal places
 function formatMoneyInput(value: string): string {
   let formatted = value.replace(/[^0-9,]/g, "");
@@ -85,6 +97,9 @@ export function ExpenseFormScreen({ navigation, route }: ExpenseFormScreenProps)
 
     if (field === "amount") {
       finalValue = formatMoneyInput(value);
+    } else if (field === "debtDate") {
+      // Allow any input but validate format separately
+      finalValue = value;
     }
 
     setFormData((prev) => ({
@@ -169,9 +184,12 @@ export function ExpenseFormScreen({ navigation, route }: ExpenseFormScreenProps)
           <Text style={styles.label}>Data *</Text>
           <TextInput
             style={[styles.input, errors.debtDate && styles.inputError]}
-            placeholder="DD-MM-AAAA"
-            value={formData.debtDate}
-            onChangeText={(value) => handleInputChange("debtDate", value)}
+            placeholder={convertDateToBrazilian(new Date().toISOString().split("T")[0])}
+            value={convertDateToBrazilian(formData.debtDate)}
+            onChangeText={(value) => {
+              const isoDate = convertDateToISO(value);
+              handleInputChange("debtDate", isoDate);
+            }}
             placeholderTextColor={Colors.textLight}
           />
           {errors.debtDate && <Text style={styles.errorText}>{errors.debtDate}</Text>}
