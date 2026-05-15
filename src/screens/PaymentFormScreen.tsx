@@ -31,6 +31,7 @@ interface FormData {
   propertyId: number | null;
   monthReference: string;
   observation: string;
+  isPartial: boolean;
 }
 
 const MONTHS = [
@@ -55,6 +56,7 @@ const INITIAL_FORM_STATE: FormData = {
   propertyId: null,
   monthReference: MONTHS[new Date().getMonth()],
   observation: "",
+  isPartial: false,
 };
 
 // Convert date format from YYYY-MM-DD to DD-MM-AAAA
@@ -104,7 +106,7 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
 
           // If coming from a payment, pre-fill form data
           if (route.params?.paymentData) {
-            const { propertyId, propertyName, monthReference, yearReference, amount } =
+            const { propertyId, monthReference, yearReference, amount } =
               route.params.paymentData;
 
             setFormData((prev) => ({
@@ -112,7 +114,7 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
               propertyId,
               monthReference,
               yearReference,
-              amount: amount.toString(),
+              amount: amount.toFixed(2),
             }));
           }
         }
@@ -126,8 +128,8 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
     loadProperties();
   }, [route.params?.paymentData]);
 
-  const handleInputChange = (field: keyof FormData, value: string | number) => {
-    let finalValue: string | number = value;
+  const handleInputChange = (field: keyof FormData, value: string | number | boolean) => {
+    let finalValue: string | number | boolean = value;
 
     if (field === "amount") {
       finalValue = formatMoneyInput(value as string);
@@ -148,6 +150,10 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
         return newErrors;
       });
     }
+  };
+
+  const togglePartial = () => {
+    setFormData((prev) => ({ ...prev, isPartial: !prev.isPartial }));
   };
 
   const validateForm = (): boolean => {
@@ -187,6 +193,7 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
         amount: parseFloat(formData.amount),
         property_id: formData.propertyId,
         month_reference: formData.monthReference,
+        is_partial: formData.isPartial,
         ...(formData.observation && { observation: formData.observation }),
       };
 
@@ -202,6 +209,16 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
   };
 
   const selectedProperty = properties.find((p) => p.id === formData.propertyId);
+  const incomingPartialContext = route.params?.paymentData?.isPartial
+    ? route.params.paymentData
+    : null;
+  const remainingFromContext = incomingPartialContext?.remainingAmount;
+
+  const formatCurrency = (value: number): string =>
+    value.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    });
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -215,6 +232,24 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
         extraHeight={140}
         keyboardOpeningTime={0}
       >
+        {incomingPartialContext && (
+          <View style={styles.partialBanner}>
+            <Text style={styles.partialBannerTitle}>Continuação de pagamento parcial</Text>
+            <Text style={styles.partialBannerText}>
+              {incomingPartialContext.propertyName} — {incomingPartialContext.monthReference}/
+              {incomingPartialContext.yearReference}
+            </Text>
+            {typeof remainingFromContext === "number" && (
+              <Text style={styles.partialBannerAmount}>
+                Saldo restante: {formatCurrency(remainingFromContext)}
+              </Text>
+            )}
+            <Text style={styles.partialBannerHint}>
+              Mantenha o valor para quitar, ou marque "Pagamento parcial" para registrar outra parcela.
+            </Text>
+          </View>
+        )}
+
         <Text style={styles.sectionTitle}>Informações do Pagamento</Text>
 
         <View style={styles.formGroup}>
@@ -283,6 +318,24 @@ export function PaymentFormScreen({ navigation, route }: PaymentFormScreenProps)
           />
           {errors.amount && <Text style={styles.errorText}>{errors.amount}</Text>}
         </View>
+
+        <TouchableOpacity
+          style={styles.partialToggleRow}
+          onPress={togglePartial}
+          activeOpacity={0.7}
+        >
+          <View
+            style={[styles.checkbox, formData.isPartial && styles.checkboxChecked]}
+          >
+            {formData.isPartial && <Text style={styles.checkboxMark}>✓</Text>}
+          </View>
+          <View style={styles.partialToggleTextContainer}>
+            <Text style={styles.partialToggleLabel}>Pagamento parcial</Text>
+            <Text style={styles.partialToggleHint}>
+              Marque caso este valor não quite o aluguel do mês.
+            </Text>
+          </View>
+        </TouchableOpacity>
 
         <View style={styles.formGroup}>
           <Text style={styles.label}>Observações</Text>
@@ -452,6 +505,85 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderBottomColor: Colors.secondary,
     paddingBottom: 8,
+  },
+  partialBanner: {
+    backgroundColor: Colors.warning + "1A",
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.warning,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    gap: 4,
+  },
+  partialBannerTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: Colors.warning,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  partialBannerText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.primary,
+  },
+  partialBannerAmount: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.warning,
+    marginTop: 2,
+  },
+  partialBannerHint: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 4,
+    lineHeight: 16,
+  },
+  partialToggleRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    gap: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
+    backgroundColor: Colors.background,
+    borderWidth: 1,
+    borderColor: Colors.border,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 4,
+    borderWidth: 2,
+    borderColor: Colors.warning,
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 2,
+  },
+  checkboxChecked: {
+    backgroundColor: Colors.warning,
+  },
+  checkboxMark: {
+    color: Colors.background,
+    fontSize: 14,
+    fontWeight: "700",
+    lineHeight: 16,
+  },
+  partialToggleTextContainer: {
+    flex: 1,
+  },
+  partialToggleLabel: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: Colors.primary,
+  },
+  partialToggleHint: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 2,
+    lineHeight: 16,
   },
   formGroup: {
     marginBottom: 16,

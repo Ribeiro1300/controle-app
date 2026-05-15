@@ -267,10 +267,22 @@ export function PropertyDetailsScreen({ route, navigation }: PropertyDetailsScre
                               ? "Pago"
                               : payment.status === "pending"
                                 ? "Pendente"
-                                : "Atrasado"}
+                                : payment.status === "partial"
+                                  ? "Parcial"
+                                  : "Atrasado"}
                           </Text>
                         </View>
                       </View>
+                      {payment.status === "partial" &&
+                        typeof payment.remainingAmount === "number" && (
+                          <Text style={styles.listItemRemaining}>
+                            Restante:{" "}
+                            {payment.remainingAmount.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                          </Text>
+                        )}
                     </View>
                   </View>
                 ))}
@@ -546,6 +558,12 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: Colors.secondary,
   },
+  listItemRemaining: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: Colors.warning,
+    marginTop: 4,
+  },
   listItemObservation: {
     fontSize: 12,
     color: Colors.textLight,
@@ -570,6 +588,9 @@ const styles = StyleSheet.create({
   },
   statusoverdue: {
     backgroundColor: Colors.error,
+  },
+  statuspartial: {
+    backgroundColor: Colors.warning,
   },
   backButton: {
     marginTop: 20,

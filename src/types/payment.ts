@@ -2,6 +2,8 @@
  * Payment type definition
  */
 
+export type PaymentStatus = "paid" | "pending" | "overdue" | "partial";
+
 export interface Payment {
   id: number;
   propertyId: number;
@@ -10,7 +12,8 @@ export interface Payment {
   yearReference: number;
   amount: number;
   dueDay: string;
-  status: "paid" | "pending" | "overdue";
+  status: PaymentStatus;
+  remainingAmount?: number;
 }
 
 export interface PaymentsResponse {

@@ -12,4 +12,5 @@ export const Colors = {
   border: "#e0e0e0", // Light border
   error: "#d32f2f", // Error red
   success: "#388e3c", // Success green
+  warning: "#f57c00", // Orange for partial payments
 } as const;

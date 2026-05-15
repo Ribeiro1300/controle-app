@@ -23,6 +23,8 @@ export type PaymentsStackParamList = {
       monthReference: string;
       yearReference: number;
       amount: number;
+      isPartial?: boolean;
+      remainingAmount?: number;
     };
   };
 };

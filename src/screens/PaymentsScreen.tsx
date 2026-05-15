@@ -42,12 +42,23 @@ export function PaymentsScreen({ navigation }: PaymentsScreenProps) {
     try {
       setLoading(true);
       setError(null);
-      const url = status === "overdue" ? "/payments?status=overdue" : "/payments";
-      const response = await apiClient.get<PaymentsResponse>(url);
-      if (response.result) {
-        setPayments(response.result);
-        setFilterStatus(status);
+
+      if (status === "overdue") {
+        const [overdueResponse, allResponse] = await Promise.all([
+          apiClient.get<PaymentsResponse>("/payments?status=overdue"),
+          apiClient.get<PaymentsResponse>("/payments"),
+        ]);
+        const overdueItems = overdueResponse.result ?? [];
+        const partialItems = (allResponse.result ?? []).filter(
+          (payment) => payment.status === "partial",
+        );
+        setPayments([...overdueItems, ...partialItems]);
+      } else {
+        const response = await apiClient.get<PaymentsResponse>("/payments");
+        setPayments(response.result ?? []);
       }
+
+      setFilterStatus(status);
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro ao carregar pagamentos";
       setError(errorMessage);
@@ -86,6 +97,8 @@ export function PaymentsScreen({ navigation }: PaymentsScreenProps) {
         return Colors.secondary;
       case "overdue":
         return Colors.error;
+      case "partial":
+        return Colors.warning;
       default:
         return Colors.textLight;
     }
@@ -99,20 +112,28 @@ export function PaymentsScreen({ navigation }: PaymentsScreenProps) {
         return "Pendente";
       case "overdue":
         return "Atrasado";
+      case "partial":
+        return "Parcial";
       default:
         return status;
     }
   };
 
-  const renderPaymentCard = ({ item }: { item: Payment }) => {
-    const paymentAmount = item.amount.toLocaleString("pt-BR", {
+  const formatCurrency = (value: number): string =>
+    value.toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL",
     });
 
+  const renderPaymentCard = ({ item }: { item: Payment }) => {
+    const paymentAmount = formatCurrency(item.amount);
+
     const statusColor = getStatusColor(item.status);
     const statusLabel = getStatusLabel(item.status);
     const isOverdue = item.status === "overdue";
+    const isPartial = item.status === "partial";
+    const isPaid = item.status === "paid";
+    const isTappable = isOverdue || isPartial;
 
     const cardContent = (
       <View style={styles.cardContent}>
@@ -123,7 +144,7 @@ export function PaymentsScreen({ navigation }: PaymentsScreenProps) {
               {item.monthReference} {item.yearReference}
             </Text>
           </View>
-          {item.status === "paid" && (
+          {isPaid && (
             <TouchableOpacity
               style={styles.deleteIconButton}
               onPress={() => {
@@ -136,19 +157,33 @@ export function PaymentsScreen({ navigation }: PaymentsScreenProps) {
           )}
         </View>
         <View style={styles.cardFooter}>
-          <Text style={styles.amount}>{paymentAmount}</Text>
+          <View style={styles.amountContainer}>
+            <Text style={isPartial ? styles.amountPartial : styles.amount}>{paymentAmount}</Text>
+            {isPartial && <Text style={styles.amountSubLabel}>pago</Text>}
+          </View>
           <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
             <Text style={styles.statusLabel}>{statusLabel}</Text>
           </View>
         </View>
+        {isPartial && typeof item.remainingAmount === "number" && (
+          <View style={styles.remainingContainer}>
+            <Text style={styles.remainingLabel}>Restante a pagar</Text>
+            <Text style={styles.remainingAmount}>{formatCurrency(item.remainingAmount)}</Text>
+          </View>
+        )}
         {item.dueDay && <Text style={styles.dueDay}>Vencimento: dia {item.dueDay}</Text>}
+        {isTappable && (
+          <Text style={styles.tapHint}>
+            {isPartial ? "Toque para quitar ou registrar outra parcela" : "Toque para registrar pagamento"}
+          </Text>
+        )}
       </View>
     );
 
-    if (isOverdue) {
+    if (isTappable) {
       return (
         <TouchableOpacity
-          style={styles.paymentCard}
+          style={[styles.paymentCard, isPartial && styles.paymentCardPartial]}
           onPress={() =>
             navigation.navigate("PaymentForm", {
               paymentData: {
@@ -156,7 +191,11 @@ export function PaymentsScreen({ navigation }: PaymentsScreenProps) {
                 propertyName: item.propertyName,
                 monthReference: item.monthReference,
                 yearReference: item.yearReference,
-                amount: item.amount,
+                amount: isPartial && typeof item.remainingAmount === "number"
+                  ? item.remainingAmount
+                  : item.amount,
+                isPartial,
+                remainingAmount: item.remainingAmount,
               },
             })
           }
@@ -232,7 +271,11 @@ export function PaymentsScreen({ navigation }: PaymentsScreenProps) {
         <View style={styles.headerContainer}>
           <View>
             <Text style={styles.title}>Pagamentos</Text>
-            <Text style={styles.subtitle}>{payments.length} pagamento(s) registrado(s)</Text>
+            <Text style={styles.subtitle}>
+              {filterStatus === "overdue"
+                ? `${payments.length} pendente(s)`
+                : `${payments.length} pagamento(s) registrado(s)`}
+            </Text>
           </View>
           <TouchableOpacity
             style={styles.registerButton}
@@ -401,6 +444,9 @@ const styles = StyleSheet.create({
     borderLeftWidth: 4,
     borderLeftColor: Colors.secondary,
   },
+  paymentCardPartial: {
+    borderLeftColor: Colors.warning,
+  },
   cardContent: {
     gap: 8,
   },
@@ -420,10 +466,51 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginTop: 4,
   },
+  amountContainer: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    gap: 6,
+  },
   amount: {
     fontSize: 16,
     fontWeight: "700",
     color: Colors.background,
+  },
+  amountPartial: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: Colors.warning,
+  },
+  amountSubLabel: {
+    fontSize: 11,
+    color: Colors.background,
+    fontWeight: "500",
+    opacity: 0.7,
+  },
+  remainingContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: "rgba(255, 255, 255, 0.15)",
+  },
+  remainingLabel: {
+    fontSize: 12,
+    color: Colors.background,
+    fontWeight: "500",
+  },
+  remainingAmount: {
+    fontSize: 15,
+    color: Colors.warning,
+    fontWeight: "700",
+  },
+  tapHint: {
+    fontSize: 11,
+    color: Colors.background,
+    fontStyle: "italic",
+    opacity: 0.6,
+    marginTop: 2,
   },
   statusBadge: {
     paddingHorizontal: 12,
